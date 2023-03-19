@@ -22,6 +22,7 @@ import time
 import numpy as np
 import platform 
 import telebot
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, KeyboardButton, ReplyKeyboardMarkup
 #def's
 def file_opening(nomination):#открытие ярлыков(приложений) из рабочего стола
     os.startfile(r'C:\Users\{name1}\Desktop\{name2}'.format(name1=USER_NAME,name2=str(nomination)))
@@ -38,23 +39,6 @@ def text_speaker(text):#воспроизведение текста на дин�
     engine.runAndWait()
 
     
-def greet(profile_id):#приветствие пользователя при включении пк
-    timee=int(datetime.today().strftime("%H"))
-    
-    if timee <= 6 and timee >= 0:
-        greeting="Доброй ночи!"
-
-    if timee <= 12 and timee > 6:
-        greeting="Доброе утро!"
-
-    if timee <= 18 and timee > 12:
-        greeting="Добрый день!"        
-
-    if timee <= 25 and timee > 18:#remark
-        greeting="Добрый вечер!"
-        
-    vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=static_board.get_keyboard(),message=greeting)
-
 
 def write_msg(user_id, s):#отправка текстового сообщения
     vk_session.method('messages.send', {'user_id':user_id,'message':s,"random_id":random.randint(1, 100)})
@@ -179,9 +163,8 @@ def screenshot():
     
     
 def secondary_main(token, id_admin, turn_on):#всегдда проверка на слово ""
-    global USER_NAME
     bot=telebot.TeleBot(token)
-    @bot.message_handler(commands=['notify'])
+    @bot.message_handler(commands=['notify_on'])
     def start_message(message):
         try:
             USER_NAME = getpass.getuser()
@@ -199,46 +182,173 @@ def secondary_main(token, id_admin, turn_on):#всегдда проверка н
                 json.dump(info_list,file,indent=2,ensure_ascii=False)#запись id в .json
             
         except Exception as a:
-            write_msg(profile_id,a)
+            print(a)
 
         else:
+            print("1")
             bot.send_message(id_admin,"Уведомления были включены. Для выключения введите команду /notify_off")
             bot.stop_polling()
             main(token, id_admin, turn_on)
 
-    bot.infinity_polling()
+    bot.polling()
+
+
     
 def main(token, id_admin, turn_on):    
-    global vk,longpoll,vk_session,medium,keyboard,keyboard_one,static_board,profile_id,USER_NAME,event
+    global sound_stat
     
     #system variables
-    USER_NAME = getpass.getuser()
-    redirect="recover.json"
-    appdata_m=r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME#link to startup
-    appdata_path=f"{appdata_m}\{redirect}"#link to .json file
+    file_path=os.path.dirname(os.path.realpath(__main__.__file__))#link to startup
+    cam_path=f"{file_path}\screen.png"
+    screen_path=f"{file_path}\cam.png"
     try:
-        with open(appdata_path) as file:#путь до автозагрузки
-            notification_status=bool(json.load(file)["notification_status"])
-
-        if notification_status==False:
-            return
-        
-    except FileNotFoundError:
-        print("no such file in startup")
-        
-    try:
-        os.remove(r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\camphoto.png' % USER_NAME)#проверка и удаление фотографий
-
+        os.remove(cam_path)#проверка и удаление фотографий
     except:
         pass
-
     try:
-        
-        os.remove(r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup\screen.png' % USER_NAME)#проверка и удаление фотографий
-
+        os.remove(screen_path)#проверка и удаление фотографий
     except:
         pass
     
+    bot=telebot.TeleBot(token)
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = KeyboardButton("Управление🚀")
+    btn2 = KeyboardButton("Работа с файлами📁")
+    btn3 = KeyboardButton("Управление питанием🔋")
+    btn4 = KeyboardButton("Сведения и информацияℹ")
+    btn5 = KeyboardButton("Настройки⚙")
+    markup.add(btn1, btn2, btn3, btn4, btn5)
+    markup_functional = ReplyKeyboardMarkup(resize_keyboard=True)
+    btn1 = KeyboardButton("Звуковое оповещение")
+    btn2 = KeyboardButton("Вывод текста")
+    btn3 = KeyboardButton("Веб-камера")
+    btn4 = KeyboardButton("Создание окна")
+    btn5 = KeyboardButton("Веб-камера")
+    btn6 = KeyboardButton("Открытие файлов/приложений")
+    btn_newpage = KeyboardButton("След. страница➡️")
+    btn_exit = KeyboardButton("Главное меню🔙")
+    markup_functional.add(btn1, btn2, btn3, btn4, btn5, btn6, btn_exit, btn_newpage)
+    start_time = time.monotonic()
+    date_now=date.today().strftime("%d.%m.%y")
+    time_now=datetime.today().strftime("%H:%M")
+    time_message='Компьютер включен '+str(date_now)+' в '+str(time_now)
+    bot.send_message(id_admin,time_message,reply_markup=markup)
+    
+    
+    @bot.callback_query_handler(func=lambda call: True)
+    def callback_query(call):
+        if call.data == " ":
+            pass
+
+        
+    menu_stat=False
+    sound_stat=False
+    @bot.message_handler(content_types=['text'])
+    def get_text_messages(message):
+        global menu_stat, sound_stat
+        ######################################################################################################
+        if message.text.lower() == "управление🚀" or message.text.lower() == "управление":
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:", reply_markup=markup_functional)
+            menu_stat="control"
+            
+        elif message.text.lower() == "след. страница➡️" and menu_stat=="control":
+            bot.send_message(id_admin, "Новые функции только разрабатываются, следите за обновлениями!")
+
+
+
+        elif message.text.lower() == "звуковое оповещение":
+            markup_exit = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn_exit = KeyboardButton("Отмена")
+            markup_exit.add(btn_exit)
+            bot.send_message(id_admin, "Введите время воспроизведения звукового сигнала(в секундах)", reply_markup=markup_exit)
+            sound_stat=True
+            
+        elif menu_stat=="control" and sound_stat==True and message:
+            try:
+                if message.text.lower()=="отмена":
+                    bot.send_message(id_admin, "Действие отменено. Выберите действие на клавиатуре:", reply_markup=markup_functional)
+                    
+                elif int(message.text.lower())<=10 and int(message.text.lower())>0:
+                    winsound.Beep(500,int(message.text.lower())*1000)
+                    bot.send_message(id_admin, f'Был произведён гудок длительностью: {message.text} сек.', reply_markup=markup_functional)
+
+                elif int(message.text.lower())<0:
+                    bot.send_message(id_admin, f'Время {message.text} отрицательно! Попробуйте ещё раз', reply_markup=markup_functional)
+
+                elif int(message.text.lower())==0:
+                    bot.send_message(id_admin, 'Время не может быть нулевым! Попробуйте ещё раз', reply_markup=markup_functional)
+                    
+                elif int(message.text.lower())>10:
+                    bot.send_message(id_admin, 'Гудки больше 10 сек. бот не производит!', reply_markup=markup_functional)
+                        
+                sound_stat=False
+            except ValueError:
+                bot.send_message(id_admin, 'Вы ввели не число! Попробуйте ещё раз', reply_markup=markup_functional)
+                sound_stat=False
+
+        ######################################################################################################
+        elif message.text.lower() == "работа с файлами📁" or message.text.lower() == "работа с файлами":
+            markup = ReplyKeyboardMarkup(resize_keyboard=False)
+            btn1 = KeyboardButton("Звуковое оповещение")
+            btn2 = KeyboardButton("Вывод текста")
+            btn3 = KeyboardButton("Веб-камера")
+            btn4 = KeyboardButton("Создание окна")
+            btn5 = KeyboardButton("Веб-камера")
+            btn6 = KeyboardButton("Открытие файлов/приложений")
+            btn_newpage = KeyboardButton("След. страница")
+            btn_exit = KeyboardButton("Главное меню🔙")
+            markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn_exit, btn_newpage)
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:",reply_markup=markup)
+        ######################################################################################################
+          
+        elif message.text.lower() == "управление питанием🔋" or message.text.lower() == "управление питанием":
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = KeyboardButton("Power off🛑")
+            btn2 = KeyboardButton("Restart🔃")
+            btn3 = KeyboardButton("Sleep mode💤")
+            btn_exit = KeyboardButton("Главное меню🔙")
+            markup.add(btn1, btn2, btn3, btn_exit)
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:",reply_markup=markup)
+        ######################################################################################################
+        elif message.text.lower() == "сведения и информацияℹ" or message.text.lower() == "сведения и информация":
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = KeyboardButton("Звуковое оповещение")
+            btn2 = KeyboardButton("Вывод текста")
+            btn3 = KeyboardButton("Веб-камера")
+            btn4 = KeyboardButton("Создание окна")
+            btn5 = KeyboardButton("Веб-камера")
+            btn6 = KeyboardButton("Открытие файлов/приложений")
+            btn_newpage = KeyboardButton("След. страница")
+            btn_exit = KeyboardButton("Главное меню🔙")
+            markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn_exit, btn_newpage)
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:",reply_markup=markup)
+        ######################################################################################################
+        elif message.text.lower() == "настройки⚙" or message.text.lower() == "настройки":
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = KeyboardButton("Звуковое оповещение")
+            btn2 = KeyboardButton("Вывод текста")
+            btn3 = KeyboardButton("Веб-камера")
+            btn4 = KeyboardButton("Создание окна")
+            btn5 = KeyboardButton("Веб-камера")
+            btn6 = KeyboardButton("Открытие файлов/приложений")
+            btn_newpage = KeyboardButton("След. страница")
+            btn_exit = KeyboardButton("Главное меню🔙")
+            markup.add(btn1, btn2, btn3, btn4, btn5, btn6, btn_exit, btn_newpage)
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:",reply_markup=markup)
+
+
+
+        elif message.text.lower()== "главное меню🔙" or message.text.lower() == "главное меню":
+            markup = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = KeyboardButton("Управление🚀")
+            btn2 = KeyboardButton("Работа с файлами📁")
+            btn3 = KeyboardButton("Управление питанием🔋")
+            btn4 = KeyboardButton("Сведения и информацияℹ")
+            btn5 = KeyboardButton("Настройки⚙")
+            markup.add(btn1, btn2, btn3, btn4, btn5)
+            bot.send_message(id_admin,"Выберите действие на клавиатуре:",reply_markup=markup)
+
+    bot.polling()
     #variables from vk_api
     vk_session = vk_api.VkApi(token='24ad85b542c917f1cadf8aebdc640f6e6e0b090e32f88798e9ccb7ded37edea5f194efddf8f50875014c2')
     longpoll = VkLongPoll(vk_session)
@@ -746,6 +856,7 @@ def main_control():
         except requests.ConnectionError:
             time.sleep(5)
             time_codes+=1
+            print("no_connection")
 
         else:
             loop_status=False#надо
